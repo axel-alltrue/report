@@ -1,13 +1,16 @@
 import express from "express";
-import axios from "axios";
 import fs from "fs";
 import carbone from "carbone";
 import dotenv from "dotenv";
+import fetch from "node-fetch";
+import path from "path";
+
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
-const templateId = process.env.TEMPLATE_ID;
+const templateML = process.env.TEMPLATE_ML_ID;
+const templatePentest = process.env.TEMPLATE_PENTEST_ID;
 const token = process.env.TOKEN;
 
 app.use(express.json());
@@ -28,20 +31,58 @@ app.post("/generate-report/local", async (req, res) => {
 app.post("/generate-report/template-id", async (req, res) => {
   try {
     const data = req.body;
-    const response = await axios.post(
+    const templateId = data.report === "ML" ? templateML : templatePentest;
+
+    const response = await fetch(
       `https://api.carbone.io/render/${templateId}`,
-      data,
       {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify(data),
       }
     );
-    res.json(response.data);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const result = await response.json();
+    const renderId = result?.data?.renderId;
+    const fileUrl = `https://api.carbone.io/render/${renderId}`;
+
+    const fileResponse = await fetch(fileUrl);
+    console.log(fileResponse);
+    if (!fileResponse.ok) {
+      throw new Error(`HTTP error! Status: ${fileResponse.status}`);
+    }
+
+    const filePath = path.join("./", `${renderId}.pdf`);
+    const fileStream = fs.createWriteStream(filePath);
+
+    return new Promise((resolve, reject) => {
+      fileResponse.body.pipe(fileStream);
+      fileResponse.body.on("error", (err) => {
+        reject(err);
+      });
+      fileStream.on("finish", () => {
+        res.status(200).json({
+          success: true,
+          message: "Document rendered and downloaded successfully",
+          renderUrl: fileUrl,
+          renderId: renderId,
+        });
+        resolve();
+      });
+    });
   } catch (error) {
     console.error("Error generating report:", error);
-    res.status(500).send("Error generating report");
+    res.status(500).json({
+      success: false,
+      message: "Error rendering document",
+      error: error.message,
+    });
   }
 });
 
