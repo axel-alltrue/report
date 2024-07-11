@@ -1,0 +1,27 @@
+{
+    "data": {
+        "logo": "data:image/webp;base64,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",
+        "pentestScanDate": "2024/07/02",
+        "result": {
+            "attempted": 139,
+            "passed": 137,
+            "failed": 2,
+            "categories": [
+                {
+                    "name": "DAN",
+                    "description": "DAN attacks are a collection of attacks that can be used to compromise a system. These attacks are typically used to gain unauthorized access to a system, escalate privileges, or exfiltrate data. These pentests check if an LLM application is vulnerable to these attacks.",
+                    "attempted": 37,
+                    "passed": 36,
+                    "failed": 1
+                },
+                {
+                    "name": "Prompt Injection Attack",
+                    "description": "Prompt Injection attacks are a collection of techniques used to compromise a system. Attackers disguise malicious inputs as valid prompts, which manipulate LLM applications into leaking data and producing unexpected outputs. These penetration tests check if an LLM application is vulnerable to such attacks.",
+                    "attempted": 90,
+                    "passed": 90,
+                    "failed": 0
+                }
+            ]
+        }
+    }
+}
